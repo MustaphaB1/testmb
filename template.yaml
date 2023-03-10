@@ -13,10 +13,6 @@ spec:
           properties:
             imageRegex:
               type: string
-            excludedContainers:
-              type: array
-              items:
-                type: string
   targets:
     - target: admission.k8s.gatekeeper.sh
       rego: |
@@ -24,7 +20,6 @@ spec:
 
         violation[{"msg": msg}] {
           container := input_containers[_]
-          not input_container_excluded(container.name)
           re_match(input.parameters.imageRegex, container.image)
           msg := sprintf("Container image %v for container %v has not been allowed.", [container.image, container.name])
         }
@@ -37,7 +32,4 @@ spec:
         }
         input_containers[c] {
           c := input.review.object.spec.ephemeralContainers[_]
-        }
-        input_container_excluded(field) {
-            field == input.parameters.excludedContainers[_]
         }
